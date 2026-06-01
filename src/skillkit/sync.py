@@ -1,6 +1,7 @@
 """Materialize a project's resolved skills into .claude/skills/."""
 from __future__ import annotations
 import shutil
+import subprocess
 from pathlib import Path
 from skillkit.catalog import build_catalog, load_packs
 from skillkit.manifest import read_manifest, resolve
@@ -42,3 +43,22 @@ def sync(project: Path, registry_root: Path) -> list[str]:
     for name in _managed_dirs(skills_dir) - wanted_names:
         shutil.rmtree(skills_dir / name)
     return installed
+
+
+def vendor(project: Path, registry_root: Path) -> list[str]:
+    installed = sync(project, registry_root)
+    gi = project / ".gitignore"
+    line = "!.claude/skills/"
+    existing = gi.read_text(encoding="utf-8") if gi.exists() else ""
+    if line not in existing:
+        gi.write_text(
+            existing + ("" if existing.endswith("\n") or not existing else "\n") + line + "\n",
+            encoding="utf-8",
+        )
+    return installed
+
+
+def update(project: Path, registry_root: Path) -> list[str]:
+    if (registry_root / ".git").exists():
+        subprocess.run(["git", "-C", str(registry_root), "pull", "--ff-only"], check=False)
+    return sync(project, registry_root)

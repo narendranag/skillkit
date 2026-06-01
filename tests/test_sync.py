@@ -1,5 +1,5 @@
 from pathlib import Path
-from skillkit.sync import sync, MANAGED_MARKER
+from skillkit.sync import sync, vendor, MANAGED_MARKER
 
 
 def _write_skill(d: Path, name: str, desc: str = "d"):
@@ -42,3 +42,13 @@ def test_sync_never_deletes_hand_placed_skill(tmp_path):
     (proj / ".claude/skills.toml").write_text('skills = []\npacks = []\nvendor = false\n')
     sync(proj, reg)
     assert (hand / "SKILL.md").exists()
+
+
+def test_vendor_writes_gitignore_negation(tmp_path):
+    reg = _registry(tmp_path); proj = tmp_path / "proj"
+    (proj / ".claude").mkdir(parents=True)
+    (proj / ".claude/skills.toml").write_text('skills = ["gstack:qa"]\npacks = []\nvendor = true\n')
+    vendor(proj, reg)
+    assert (proj / ".claude/skills/qa/SKILL.md").exists()
+    gi = (proj / ".gitignore").read_text()
+    assert "!.claude/skills/" in gi
