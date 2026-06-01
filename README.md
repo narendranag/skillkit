@@ -6,6 +6,18 @@ A per-project Claude Code skill manager. Curate a hybrid registry of skills — 
 
 ---
 
+## Documentation
+
+| Doc | For |
+|---|---|
+| [Tutorial: Getting started](docs/tutorial-getting-started.md) | Install → de-scatter gstack → build a pack → use it in a project |
+| [How-to guides](docs/howto.md) | Task recipes: add skills, create packs, adopt gstack, vendor, author a skill |
+| [Reference](docs/reference.md) | Every command and the three file formats |
+| [Design explanation](docs/explanation-design.md) | Why manifest+sync, live packs, the marker-safety model, adopt internals |
+| [Design spec](docs/superpowers/specs/2026-06-02-skillkit-design.md) | The original design record |
+
+---
+
 ## Install
 
 ```sh
@@ -154,5 +166,5 @@ The hook scans each commit for leaked credentials before they are pushed.
 ## Running Tests
 
 ```sh
-uv run pytest        # 33 tests
+uv run pytest        # 34 tests
 ```
