@@ -31,3 +31,35 @@ def parse_frontmatter(skill_md: Path) -> dict:
         return {}
     data = yaml.safe_load(parts[1]) or {}
     return data if isinstance(data, dict) else {}
+
+def load_sources(registry_root: Path) -> dict[str, Path]:
+    f = registry_root / "sources.toml"
+    if not f.exists():
+        return {}
+    data = tomllib.loads(f.read_text())
+    return {
+        k: Path(v).expanduser()
+        for k, v in data.get("sources", {}).items()
+    }
+
+def scan_source(source: str, root: Path) -> list[SkillEntry]:
+    if not root.exists():
+        return []
+    out: list[SkillEntry] = []
+    for child in sorted(root.iterdir()):
+        skill_md = child / "SKILL.md"
+        if child.is_dir() and skill_md.exists():
+            fm = parse_frontmatter(skill_md)
+            out.append(SkillEntry(
+                source=source,
+                name=fm.get("name", child.name),
+                path=child,
+                description=fm.get("description", ""),
+            ))
+    return out
+
+def build_catalog(registry_root: Path) -> list[SkillEntry]:
+    catalog: list[SkillEntry] = []
+    for source, root in load_sources(registry_root).items():
+        catalog.extend(scan_source(source, root))
+    return catalog

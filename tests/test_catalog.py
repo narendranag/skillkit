@@ -14,3 +14,34 @@ def test_parse_frontmatter(tmp_path):
 def test_parse_frontmatter_missing(tmp_path):
     (tmp_path / "SKILL.md").write_text("no frontmatter here\n")
     assert parse_frontmatter(tmp_path / "SKILL.md") == {}
+
+from skillkit.catalog import load_sources, scan_source, build_catalog
+
+def test_load_sources(tmp_path):
+    (tmp_path / "sources.toml").write_text(
+        '[sources]\nmine = "~/ai/skillkit/skills"\ngstack = "%s"\n' % (tmp_path / "g")
+    )
+    srcs = load_sources(tmp_path)
+    assert srcs["mine"] == Path("~/ai/skillkit/skills").expanduser()
+    assert srcs["gstack"] == tmp_path / "g"
+
+def test_scan_source(tmp_path):
+    root = tmp_path / "g"
+    _write_skill(root / "qa", "qa", "QA things")
+    _write_skill(root / "ship", "ship", "Ship things")
+    (root / "not-a-skill").mkdir()  # no SKILL.md -> ignored
+    entries = scan_source("gstack", root)
+    names = sorted(e.name for e in entries)
+    assert names == ["qa", "ship"]
+    assert all(e.source == "gstack" for e in entries)
+
+def test_build_catalog_unions_sources(tmp_path):
+    g = tmp_path / "g"; m = tmp_path / "m"
+    _write_skill(g / "qa", "qa", "QA")
+    _write_skill(m / "spine", "spine", "mine")
+    (tmp_path / "sources.toml").write_text(
+        f'[sources]\nmine = "{m}"\ngstack = "{g}"\n'
+    )
+    cat = build_catalog(tmp_path)
+    refs = sorted(e.ref for e in cat)
+    assert refs == ["gstack:qa", "mine:spine"]
