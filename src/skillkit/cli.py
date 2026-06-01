@@ -1,11 +1,12 @@
 """skillkit command-line entry point."""
 from __future__ import annotations
 import argparse
+import tomli_w
 from pathlib import Path
 from rich import print as rprint
 from skillkit.config import registry_root
 from skillkit.catalog import build_catalog, load_packs
-from skillkit.manifest import read_manifest, write_manifest
+from skillkit.manifest import read_manifest, write_manifest, resolve
 from skillkit import sync as sync_mod
 from skillkit import adopt as adopt_mod
 
@@ -20,6 +21,8 @@ def _add(ref: str, project: Path, reg: Path) -> int:
         m.skills.append(ref)
     write_manifest(project, m)
     sync_mod.sync(project, reg)
+    if not ref.startswith("pack:") and ref not in {e.ref for e in build_catalog(reg)}:
+        rprint(f"[yellow]warning:[/yellow] '{ref}' is not in the catalog — nothing was materialized. Check `skillkit list`.")
     return 0
 
 
@@ -36,11 +39,13 @@ def _rm(ref: str, project: Path, reg: Path) -> int:
 
 
 def _list(project: Path, reg: Path) -> int:
-    installed = set(read_manifest(project).skills)
+    m = read_manifest(project)
+    packs = load_packs(reg)
+    installed = set(resolve(m, packs))
     for e in build_catalog(reg):
         mark = "*" if e.ref in installed else " "
         rprint(f"[{mark}] {e.ref}  [dim]{e.description}[/dim]")
-    for name, pack in load_packs(reg).items():
+    for name, pack in packs.items():
         rprint(f"    pack:{name}  [dim]{', '.join(pack.skills)}[/dim]")
     return 0
 
@@ -80,19 +85,25 @@ def main(argv: list[str] | None = None) -> int:
         return _list(project, reg)
     if args.cmd == "pick":
         from skillkit.tui import PickApp
-        chosen = PickApp(reg).run() or []
+        chosen = PickApp(reg).run()
+        if chosen is None:
+            rprint("Cancelled — nothing changed.")
+            return 0
         m = read_manifest(project)
         for ref in chosen:
-            if ref not in m.skills:
+            if ref.startswith("pack:"):
+                name = ref.split(":", 1)[1]
+                if name not in m.packs:
+                    m.packs.append(name)
+            elif ref not in m.skills:
                 m.skills.append(ref)
         write_manifest(project, m)
         sync_mod.sync(project, reg)
-        rprint(f"Installed {len(chosen)} skills")
+        rprint(f"Installed {len(chosen)} selection(s)")
         return 0
     if args.cmd == "pack":
         if args.pack_cmd == "create":
             from skillkit.tui import PickApp
-            import tomli_w
             chosen = PickApp(reg).run() or []
             (reg / "packs").mkdir(exist_ok=True)
             (reg / "packs" / f"{args.name}.toml").write_text(

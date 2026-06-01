@@ -24,3 +24,15 @@ def test_list_runs(tmp_path, monkeypatch):
     monkeypatch.setenv("SKILLKIT_REGISTRY", str(reg))
     monkeypatch.chdir(tmp_path)
     assert main(["list"]) == 0
+
+
+def test_add_and_rm_pack_routes_to_packs(tmp_path, monkeypatch):
+    reg = _registry(tmp_path); proj = tmp_path / "proj"; proj.mkdir()
+    monkeypatch.setenv("SKILLKIT_REGISTRY", str(reg))
+    monkeypatch.chdir(proj)
+    from skillkit.manifest import read_manifest
+    assert main(["add", "pack:code-repo"]) == 0
+    assert read_manifest(proj).packs == ["code-repo"]
+    assert read_manifest(proj).skills == []
+    assert main(["rm", "pack:code-repo"]) == 0
+    assert read_manifest(proj).packs == []
