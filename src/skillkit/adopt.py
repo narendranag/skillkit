@@ -1,0 +1,30 @@
+"""One-time: de-scatter gstack's globally-installed skills."""
+from __future__ import annotations
+import shutil
+from pathlib import Path
+
+def find_scatter(claude_skills: Path) -> list[Path]:
+    """Top-level dirs in ~/.claude/skills that have a twin under gstack/.
+    Excludes symlinks and the gstack dir itself."""
+    gstack = claude_skills / "gstack"
+    if not gstack.exists():
+        return []
+    twins = {d.name for d in gstack.iterdir() if d.is_dir()}
+    out: list[Path] = []
+    for child in claude_skills.iterdir():
+        if child.name == "gstack" or child.is_symlink() or not child.is_dir():
+            continue
+        if child.name in twins:
+            out.append(child)
+    return out
+
+def to_trash(path: Path, trash_dir: Path) -> Path:
+    """Move path into trash_dir, timestamp-suffixing on collision.
+    NOTE: counter used instead of wall-clock so behavior is deterministic."""
+    dest = trash_dir / path.name
+    n = 1
+    while dest.exists():
+        dest = trash_dir / f"{path.name}.{n}"
+        n += 1
+    shutil.move(str(path), str(dest))
+    return dest
