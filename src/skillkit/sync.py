@@ -12,10 +12,19 @@ def _skills_dir(project: Path) -> Path:
     return project / ".claude" / "skills"
 
 def _materialize(src: Path, dest: Path) -> None:
+    if dest.exists() and not (dest / MANAGED_MARKER).exists():
+        raise RuntimeError(
+            f"{dest} exists and is not skillkit-managed; "
+            "remove or rename it before syncing."
+        )
+    tmp = dest.parent / (dest.name + ".__sk_tmp__")
+    if tmp.exists():
+        shutil.rmtree(tmp)
+    shutil.copytree(src, tmp)
+    (tmp / MANAGED_MARKER).write_text("managed by skillkit\n", encoding="utf-8")
     if dest.exists():
         shutil.rmtree(dest)
-    shutil.copytree(src, dest)
-    (dest / MANAGED_MARKER).write_text("managed by skillkit\n")
+    tmp.rename(dest)
 
 def _managed_dirs(skills_dir: Path) -> set[str]:
     if not skills_dir.exists():

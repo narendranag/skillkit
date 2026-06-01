@@ -44,6 +44,20 @@ def test_sync_never_deletes_hand_placed_skill(tmp_path):
     assert (hand / "SKILL.md").exists()
 
 
+def test_sync_refuses_to_overwrite_unmarked_dir_with_same_name(tmp_path):
+    import pytest
+    reg = _registry(tmp_path); proj = tmp_path / "proj"
+    # hand-place an UNMARKED dir whose name collides with wanted skill "qa"
+    hand = proj / ".claude/skills/qa"; hand.mkdir(parents=True)
+    (hand / "SKILL.md").write_text("---\nname: qa\n---\n")
+    (hand / "MINE.txt").write_text("do not destroy me")
+    (proj / ".claude/skills.toml").write_text('skills = ["gstack:qa"]\npacks = []\nvendor = false\n')
+    with pytest.raises(RuntimeError):
+        sync(proj, reg)
+    # the hand-placed content must survive untouched
+    assert (hand / "MINE.txt").read_text() == "do not destroy me"
+
+
 def test_vendor_writes_gitignore_negation(tmp_path):
     reg = _registry(tmp_path); proj = tmp_path / "proj"
     (proj / ".claude").mkdir(parents=True)
