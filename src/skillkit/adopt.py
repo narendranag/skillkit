@@ -1,7 +1,10 @@
 """One-time: de-scatter gstack's globally-installed skills."""
 from __future__ import annotations
 import shutil
+import tomllib
 from pathlib import Path
+
+import tomli_w
 
 def find_scatter(claude_skills: Path) -> list[Path]:
     """Top-level dirs in ~/.claude/skills that have a twin under gstack/.
@@ -28,3 +31,18 @@ def to_trash(path: Path, trash_dir: Path) -> Path:
         n += 1
     shutil.move(str(path), str(dest))
     return dest
+
+def register_source(registry_root: Path, name: str, path: Path) -> None:
+    f = registry_root / "sources.toml"
+    data = tomllib.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    sources = data.setdefault("sources", {})
+    sources[name] = str(path)  # store unexpanded (~) form
+    f.write_text(tomli_w.dumps(data), encoding="utf-8")
+
+def adopt_gstack(registry_root: Path, *, claude_skills: Path,
+                 trash_dir: Path, yes: bool) -> list[Path]:
+    scatter = find_scatter(claude_skills)
+    register_source(registry_root, "gstack", Path("~/.claude/skills/gstack"))
+    if not yes:
+        return []
+    return [to_trash(p, trash_dir) for p in scatter]
