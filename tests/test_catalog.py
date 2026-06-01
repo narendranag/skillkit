@@ -46,6 +46,17 @@ def test_build_catalog_unions_sources(tmp_path):
     refs = sorted(e.ref for e in cat)
     assert refs == ["gstack:qa", "mine:spine"]
 
+def test_parse_frontmatter_malformed_returns_empty(tmp_path):
+    (tmp_path / "SKILL.md").write_text("---\n\tname: bad\n  oops: : :\n---\nbody\n")
+    assert parse_frontmatter(tmp_path / "SKILL.md") == {}
+
+def test_parse_frontmatter_value_containing_dashes(tmp_path):
+    (tmp_path / "SKILL.md").write_text(
+        "---\nname: qa\ndescription: end-to-end QA---automated and manual\n---\nbody\n")
+    fm = parse_frontmatter(tmp_path / "SKILL.md")
+    assert fm["name"] == "qa"
+    assert fm["description"] == "end-to-end QA---automated and manual"
+
 from skillkit.catalog import load_packs
 
 def test_load_packs(tmp_path):

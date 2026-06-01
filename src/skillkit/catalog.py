@@ -23,20 +23,26 @@ class Pack:
     skills: tuple[str, ...]
 
 def parse_frontmatter(skill_md: Path) -> dict:
-    text = skill_md.read_text()
-    if not text.startswith("---"):
+    text = skill_md.read_text(encoding="utf-8")
+    lines = text.splitlines(keepends=True)
+    if not lines or lines[0].rstrip() != "---":
         return {}
-    parts = text.split("---", 2)
-    if len(parts) < 3:
+    try:
+        close = next(i for i, l in enumerate(lines[1:], start=1) if l.rstrip() == "---")
+    except StopIteration:
         return {}
-    data = yaml.safe_load(parts[1]) or {}
+    block = "".join(lines[1:close])
+    try:
+        data = yaml.safe_load(block) or {}
+    except yaml.YAMLError:
+        return {}
     return data if isinstance(data, dict) else {}
 
 def load_sources(registry_root: Path) -> dict[str, Path]:
     f = registry_root / "sources.toml"
     if not f.exists():
         return {}
-    data = tomllib.loads(f.read_text())
+    data = tomllib.loads(f.read_text(encoding="utf-8"))
     return {
         k: Path(v).expanduser()
         for k, v in data.get("sources", {}).items()
@@ -70,7 +76,7 @@ def load_packs(registry_root: Path) -> dict[str, Pack]:
     if not packs_dir.exists():
         return out
     for f in sorted(packs_dir.glob("*.toml")):
-        data = tomllib.loads(f.read_text()).get("pack", {})
+        data = tomllib.loads(f.read_text(encoding="utf-8")).get("pack", {})
         name = data.get("name", f.stem)
         out[name] = Pack(
             name=name,
