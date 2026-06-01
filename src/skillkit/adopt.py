@@ -10,9 +10,9 @@ def find_scatter(claude_skills: Path) -> list[Path]:
     """Top-level dirs in ~/.claude/skills that have a twin under gstack/.
     Excludes symlinks and the gstack dir itself."""
     gstack = claude_skills / "gstack"
-    if not gstack.exists():
+    if not gstack.is_dir():
         return []
-    twins = {d.name for d in gstack.iterdir() if d.is_dir()}
+    twins = {d.name for d in gstack.iterdir() if d.is_dir() and not d.is_symlink()}
     out: list[Path] = []
     for child in claude_skills.iterdir():
         if child.name == "gstack" or child.is_symlink() or not child.is_dir():
@@ -22,8 +22,9 @@ def find_scatter(claude_skills: Path) -> list[Path]:
     return out
 
 def to_trash(path: Path, trash_dir: Path) -> Path:
-    """Move path into trash_dir, timestamp-suffixing on collision.
-    NOTE: counter used instead of wall-clock so behavior is deterministic."""
+    """Move path into trash_dir, counter-suffixing on name collision (.1, .2, ...).
+
+    Deterministic: uses a sequential counter, not wall-clock time."""
     dest = trash_dir / path.name
     n = 1
     while dest.exists():

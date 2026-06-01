@@ -1,5 +1,5 @@
 from pathlib import Path
-from skillkit.adopt import find_scatter, to_trash
+from skillkit.adopt import find_scatter, to_trash, register_source
 
 def test_find_scatter_only_twinned(tmp_path):
     skills = tmp_path / "skills"
@@ -28,7 +28,7 @@ def test_to_trash_timestamp_on_collision(tmp_path):
     moved = [p for p in trash.iterdir() if p.name.startswith("victim")]
     assert len(moved) == 2  # original + timestamped
 
-from skillkit.adopt import adopt_gstack, register_source
+from skillkit.adopt import adopt_gstack
 
 def test_register_source_writes_sources_toml(tmp_path):
     reg = tmp_path / "reg"; reg.mkdir()
@@ -54,3 +54,58 @@ def test_adopt_gstack_yes_moves_and_registers(tmp_path):
     assert not (skills / "qa").exists()
     assert (trash / "qa").exists()
     assert (reg / "sources.toml").exists()
+
+
+# --- C1: guard against gstack being a file/non-dir ---
+
+def test_find_scatter_gstack_is_file_returns_empty(tmp_path):
+    skills = tmp_path / "skills"; skills.mkdir()
+    (skills / "gstack").write_text("not a dir")  # gstack is a FILE
+    (skills / "qa").mkdir()
+    assert find_scatter(skills) == []   # must not raise
+
+
+# --- I2: symlinked twin inside gstack is not treated as a twin ---
+
+def test_find_scatter_ignores_symlinked_gstack_twin(tmp_path):
+    skills = tmp_path / "skills"; gstack = skills / "gstack"; gstack.mkdir(parents=True)
+    real = tmp_path / "real_qa"; real.mkdir()
+    (gstack / "qa").symlink_to(real)   # twin under gstack is a SYMLINK
+    (skills / "qa").mkdir()            # top-level qa
+    assert find_scatter(skills) == []  # symlinked twin shouldn't flag it
+
+
+# --- I1: name-collision IS trashed (known design limitation) ---
+
+def test_find_scatter_name_collision_is_flagged_known_limitation(tmp_path):
+    # Documents that find_scatter matches by NAME only: a hand-authored dir whose
+    # name collides with a gstack skill WILL be flagged. The CLI must preview the
+    # list before --yes so the user can abort.
+    skills = tmp_path / "skills"; gstack = skills / "gstack"; gstack.mkdir(parents=True)
+    (gstack / "qa").mkdir()
+    (skills / "qa").mkdir()
+    (skills / "qa" / "MY_WORK.txt").write_text("hand authored")
+    flagged = [p.name for p in find_scatter(skills)]
+    assert "qa" in flagged   # name-match only; this is the documented behavior
+
+
+# --- M2: register_source preserves existing entries ---
+
+def test_register_source_preserves_existing(tmp_path):
+    reg = tmp_path / "reg"; reg.mkdir()
+    (reg / "sources.toml").write_text('[sources]\nmine = "~/ai/skillkit/skills"\n', encoding="utf-8")
+    register_source(reg, "gstack", Path("~/.claude/skills/gstack"))
+    import tomllib
+    data = tomllib.loads((reg / "sources.toml").read_text(encoding="utf-8"))
+    assert data["sources"]["mine"] == "~/ai/skillkit/skills"   # preserved
+    assert data["sources"]["gstack"] == "~/.claude/skills/gstack"
+
+
+# --- M3: to_trash second collision yields .2 ---
+
+def test_to_trash_second_collision(tmp_path):
+    src = tmp_path / "victim"; src.mkdir()
+    trash = tmp_path / "trash"; (trash / "victim").mkdir(parents=True); (trash / "victim.1").mkdir()
+    dest = to_trash(src, trash)
+    assert dest.name == "victim.2"
+    assert not src.exists()
