@@ -63,3 +63,18 @@ def build_catalog(registry_root: Path) -> list[SkillEntry]:
     for source, root in load_sources(registry_root).items():
         catalog.extend(scan_source(source, root))
     return catalog
+
+def load_packs(registry_root: Path) -> dict[str, Pack]:
+    packs_dir = registry_root / "packs"
+    out: dict[str, Pack] = {}
+    if not packs_dir.exists():
+        return out
+    for f in sorted(packs_dir.glob("*.toml")):
+        data = tomllib.loads(f.read_text()).get("pack", {})
+        name = data.get("name", f.stem)
+        out[name] = Pack(
+            name=name,
+            description=data.get("description", ""),
+            skills=tuple(data.get("skills", [])),
+        )
+    return out

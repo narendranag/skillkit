@@ -45,3 +45,15 @@ def test_build_catalog_unions_sources(tmp_path):
     cat = build_catalog(tmp_path)
     refs = sorted(e.ref for e in cat)
     assert refs == ["gstack:qa", "mine:spine"]
+
+from skillkit.catalog import load_packs
+
+def test_load_packs(tmp_path):
+    packs_dir = tmp_path / "packs"; packs_dir.mkdir()
+    (packs_dir / "code-repo.toml").write_text(
+        '[pack]\nname = "code-repo"\ndescription = "coding set"\n'
+        'skills = ["gstack:qa", "mine:spine"]\n'
+    )
+    packs = load_packs(tmp_path)
+    assert packs["code-repo"].description == "coding set"
+    assert packs["code-repo"].skills == ("gstack:qa", "mine:spine")
