@@ -55,6 +55,13 @@ def main(argv: list[str] | None = None) -> int:
     ad = sub.add_parser("adopt"); ad.add_argument("target", choices=["gstack"])
     ad.add_argument("--yes", action="store_true")
 
+    sub.add_parser("pick")
+    pk = sub.add_parser("pack")
+    pk_sub = pk.add_subparsers(dest="pack_cmd", required=True)
+    pc = pk_sub.add_parser("create"); pc.add_argument("name")
+    pk_sub.add_parser("list")
+    psh = pk_sub.add_parser("show"); psh.add_argument("name")
+
     args = p.parse_args(argv)
     reg = registry_root()
     project = Path.cwd()
@@ -71,6 +78,37 @@ def main(argv: list[str] | None = None) -> int:
         sync_mod.vendor(project, reg); return 0
     if args.cmd == "list":
         return _list(project, reg)
+    if args.cmd == "pick":
+        from skillkit.tui import PickApp
+        chosen = PickApp(reg).run() or []
+        m = read_manifest(project)
+        for ref in chosen:
+            if ref not in m.skills:
+                m.skills.append(ref)
+        write_manifest(project, m)
+        sync_mod.sync(project, reg)
+        rprint(f"Installed {len(chosen)} skills")
+        return 0
+    if args.cmd == "pack":
+        if args.pack_cmd == "create":
+            from skillkit.tui import PickApp
+            import tomli_w
+            chosen = PickApp(reg).run() or []
+            (reg / "packs").mkdir(exist_ok=True)
+            (reg / "packs" / f"{args.name}.toml").write_text(
+                tomli_w.dumps({"pack": {"name": args.name, "description": "", "skills": chosen}}),
+                encoding="utf-8",
+            )
+            rprint(f"Wrote pack {args.name} with {len(chosen)} skills")
+            return 0
+        if args.pack_cmd == "list":
+            for name, pk in load_packs(reg).items():
+                rprint(f"pack:{name}  [dim]{', '.join(pk.skills)}[/dim]")
+            return 0
+        if args.pack_cmd == "show":
+            pk = load_packs(reg).get(args.name)
+            rprint(pk if pk else f"no pack {args.name}")
+            return 0
     if args.cmd == "adopt":
         claude_skills = Path("~/.claude/skills").expanduser()
         if not args.yes:
