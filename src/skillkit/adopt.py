@@ -12,7 +12,8 @@ def find_scatter(claude_skills: Path) -> list[Path]:
     gstack = claude_skills / "gstack"
     if not gstack.is_dir():
         return []
-    twins = {d.name for d in gstack.iterdir() if d.is_dir() and not d.is_symlink()}
+    twins = {d.name for d in gstack.iterdir()
+             if d.is_dir() and not d.is_symlink() and (d / "SKILL.md").exists()}
     out: list[Path] = []
     for child in claude_skills.iterdir():
         if child.name == "gstack" or child.is_symlink() or not child.is_dir():

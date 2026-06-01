@@ -5,7 +5,9 @@ def test_find_scatter_only_twinned(tmp_path):
     skills = tmp_path / "skills"
     gstack = skills / "gstack"
     (gstack / "qa").mkdir(parents=True)
+    (gstack / "qa" / "SKILL.md").write_text("---\nname: qa\n---\n")
     (gstack / "ship").mkdir()
+    (gstack / "ship" / "SKILL.md").write_text("---\nname: ship\n---\n")
     (skills / "qa").mkdir()        # twin -> scatter
     (skills / "ship").mkdir()      # twin -> scatter
     (skills / "standalone").mkdir()  # no twin -> keep
@@ -47,6 +49,7 @@ def test_adopt_gstack_dry_run_lists_without_moving(tmp_path):
 
 def test_adopt_gstack_yes_moves_and_registers(tmp_path):
     skills = tmp_path / "skills"; (skills / "gstack" / "qa").mkdir(parents=True)
+    (skills / "gstack" / "qa" / "SKILL.md").write_text("---\nname: qa\n---\n")
     (skills / "qa").mkdir()
     reg = tmp_path / "reg"; reg.mkdir(); trash = tmp_path / "trash"; trash.mkdir()
     moved = adopt_gstack(reg, claude_skills=skills, trash_dir=trash, yes=True)
@@ -83,6 +86,7 @@ def test_find_scatter_name_collision_is_flagged_known_limitation(tmp_path):
     # list before --yes so the user can abort.
     skills = tmp_path / "skills"; gstack = skills / "gstack"; gstack.mkdir(parents=True)
     (gstack / "qa").mkdir()
+    (gstack / "qa" / "SKILL.md").write_text("---\nname: qa\n---\n")
     (skills / "qa").mkdir()
     (skills / "qa" / "MY_WORK.txt").write_text("hand authored")
     flagged = [p.name for p in find_scatter(skills)]
@@ -109,3 +113,15 @@ def test_to_trash_second_collision(tmp_path):
     dest = to_trash(src, trash)
     assert dest.name == "victim.2"
     assert not src.exists()
+
+
+def test_find_scatter_ignores_gstack_support_dirs(tmp_path):
+    # A gstack subdir WITHOUT a SKILL.md (e.g. "bin", "docs") is support tooling,
+    # not a skill, so a same-named top-level dir must NOT be flagged for trashing.
+    skills = tmp_path / "skills"; gstack = skills / "gstack"; gstack.mkdir(parents=True)
+    (gstack / "qa").mkdir(); (gstack / "qa" / "SKILL.md").write_text("---\nname: qa\n---\n")
+    (gstack / "bin").mkdir()  # support dir, no SKILL.md
+    (skills / "qa").mkdir()   # real skill scatter -> should be flagged
+    (skills / "bin").mkdir()  # user's own 'bin' -> must NOT be flagged
+    flagged = sorted(p.name for p in find_scatter(skills))
+    assert flagged == ["qa"]
