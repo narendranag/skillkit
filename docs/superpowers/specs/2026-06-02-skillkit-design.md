@@ -100,9 +100,11 @@ skillkit/
      add a local `.gitignore` negation so the repo is self-contained.
 
 4. **adopt.py** (`skillkit adopt gstack`) — register `~/.claude/skills/gstack` as the
-   `gstack` source in `sources.toml`, then remove the ~55 top-level scattered gstack
-   skill dirs from `~/.claude/skills/` (only those that also exist under
-   `gstack/`, to be safe). Print a summary; never touch non-gstack dirs or symlinks.
+   `gstack` source in `sources.toml`, then **move to macOS Trash** the ~55 top-level
+   scattered gstack skill dirs from `~/.claude/skills/` (only those that also exist
+   under `gstack/`, to be safe) — so the action is reversible from Finder, not a hard
+   delete. Use the `trash` CLI if present, else `mv` into `~/.Trash/` (timestamp-suffix
+   on name collision). Print a summary; never touch non-gstack dirs or symlinks.
    README documents that `gstack-upgrade` may re-scatter and how to re-run adopt.
 
 5. **tui.py** (Textual) — `pick` opens a multiselect catalog grouped by source
@@ -161,8 +163,8 @@ skillkit adopt gstack                    # de-scatter gstack (one-time)
 - Missing source root or unreadable `SKILL.md` -> warn and skip that entry, continue.
 - `add` of an unknown ref -> error listing near-matches from the catalog.
 - `sync` outside a project (no writable cwd / refusal) -> clear message.
-- `adopt gstack` is idempotent and only removes dirs that have a canonical twin under
-  `gstack/`; prints exactly what it will remove and requires `--yes` for the deletion.
+- `adopt gstack` is idempotent and only moves-to-Trash dirs that have a canonical twin
+  under `gstack/`; prints exactly what it will trash and requires `--yes` to proceed.
 
 ## Testing
 
@@ -171,7 +173,8 @@ skillkit adopt gstack                    # de-scatter gstack (one-time)
 - `sync.py`: temp project; assert copy, removal of de-listed managed skills, marker-file
   protection of hand-placed skills, vendor toggling gitignore.
 - `adopt.py`: fake `~/.claude/skills` with scattered + canonical dirs -> assert only
-  twinned scatter removed, symlinks and standalone dirs untouched.
+  twinned scatter is trashed (into a temp trash dir), symlinks and standalone dirs
+  untouched.
 - TUI: smoke test that screens build and selection maps to manifest writes.
 
 ## Build sequence
