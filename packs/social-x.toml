@@ -1,0 +1,4 @@
+[pack]
+name = "social-x"
+description = "X/Twitter research and monitoring skills"
+skills = ["mine:hermes-tweet"]
