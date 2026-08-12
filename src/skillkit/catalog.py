@@ -43,10 +43,11 @@ def load_sources(registry_root: Path) -> dict[str, Path]:
     if not f.exists():
         return {}
     data = tomllib.loads(f.read_text(encoding="utf-8"))
-    return {
-        k: Path(v).expanduser()
-        for k, v in data.get("sources", {}).items()
-    }
+    sources: dict[str, Path] = {}
+    for name, value in data.get("sources", {}).items():
+        path = Path(value).expanduser()
+        sources[name] = path if path.is_absolute() else registry_root / path
+    return sources
 
 def scan_source(source: str, root: Path) -> list[SkillEntry]:
     if not root.exists():
