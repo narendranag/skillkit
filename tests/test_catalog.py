@@ -19,10 +19,10 @@ from skillkit.catalog import load_sources, scan_source, build_catalog
 
 def test_load_sources(tmp_path):
     (tmp_path / "sources.toml").write_text(
-        '[sources]\nmine = "~/ai/skillkit/skills"\ngstack = "%s"\n' % (tmp_path / "g")
+        '[sources]\nmine = "~/ai/_personal/skillkit/skills"\ngstack = "%s"\n' % (tmp_path / "g")
     )
     srcs = load_sources(tmp_path)
-    assert srcs["mine"] == Path("~/ai/skillkit/skills").expanduser()
+    assert srcs["mine"] == Path("~/ai/_personal/skillkit/skills").expanduser()
     assert srcs["gstack"] == tmp_path / "g"
 
 def test_scan_source(tmp_path):

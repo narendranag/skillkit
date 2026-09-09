@@ -97,11 +97,11 @@ def test_find_scatter_name_collision_is_flagged_known_limitation(tmp_path):
 
 def test_register_source_preserves_existing(tmp_path):
     reg = tmp_path / "reg"; reg.mkdir()
-    (reg / "sources.toml").write_text('[sources]\nmine = "~/ai/skillkit/skills"\n', encoding="utf-8")
+    (reg / "sources.toml").write_text('[sources]\nmine = "~/ai/_personal/skillkit/skills"\n', encoding="utf-8")
     register_source(reg, "gstack", Path("~/.claude/skills/gstack"))
     import tomllib
     data = tomllib.loads((reg / "sources.toml").read_text(encoding="utf-8"))
-    assert data["sources"]["mine"] == "~/ai/skillkit/skills"   # preserved
+    assert data["sources"]["mine"] == "~/ai/_personal/skillkit/skills"   # preserved
     assert data["sources"]["gstack"] == "~/.claude/skills/gstack"
 
 
