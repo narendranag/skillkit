@@ -15,7 +15,7 @@ install chosen subsets (individually or as packs) into a project's
 
 | File | Responsibility | Notes |
 |------|----------------|-------|
-| `config.py` | `registry_root()` | `$SKILLKIT_REGISTRY` or `~/ai/skillkit`. |
+| `config.py` | `registry_root()` | `$SKILLKIT_REGISTRY` or `~/ai/_personal/skillkit`. |
 | `catalog.py` | scan sources → union catalog | `SkillEntry` (frozen, has `.ref`), `Pack` (frozen, `skills: tuple`), `parse_frontmatter`, `load_sources`, `scan_source`, `build_catalog`, `load_packs`. Pure function of disk state. |
 | `manifest.py` | read/write/resolve `.claude/skills.toml` | `Manifest`, `resolve()` flattens skills + pack members, dedup first-seen. |
 | `sync.py` | the ONLY writer of `.claude/skills/` | `sync`, `vendor`, `update`, `MANAGED_MARKER`. |

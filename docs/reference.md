@@ -11,7 +11,7 @@ skillkit reads its registry (sources, packs, authored skills) from a single
 directory, resolved in this order:
 
 1. `$SKILLKIT_REGISTRY` if set
-2. `~/ai/skillkit` (default)
+2. `~/ai/_personal/skillkit` (default)
 
 The registry is a normal git repo you own. A project's installed skills live in
 that project's `.claude/skills/`, not in the registry.
@@ -95,7 +95,7 @@ Declares the source roots scanned to build the catalog. Paths may use `~`.
 
 ```toml
 [sources]
-mine   = "~/ai/skillkit/skills"
+mine   = "~/ai/_personal/skillkit/skills"
 gstack = "~/.claude/skills/gstack"
 agents = "~/.agents/skills"
 ```

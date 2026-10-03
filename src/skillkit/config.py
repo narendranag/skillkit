@@ -4,5 +4,5 @@ from pathlib import Path
 
 
 def registry_root() -> Path:
-    """Registry repo root: $SKILLKIT_REGISTRY or ~/ai/skillkit."""
+    """Registry repo root: $SKILLKIT_REGISTRY or ~/ai/_personal/skillkit."""
     return Path(os.environ.get("SKILLKIT_REGISTRY", "~/ai/_personal/skillkit")).expanduser()

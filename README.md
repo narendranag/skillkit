@@ -21,8 +21,8 @@ A per-project Claude Code skill manager. Curate a hybrid registry of skills — 
 ## Install
 
 ```sh
-git clone <this-repo> ~/ai/skillkit
-cd ~/ai/skillkit
+git clone <this-repo> ~/ai/_personal/skillkit
+cd ~/ai/_personal/skillkit
 uv tool install --editable .
 ```
 
@@ -31,7 +31,7 @@ This puts `skillkit` on your PATH via uv's tool shim directory. If `uv` prints a
 **Registry location** — resolved in this order:
 
 1. `$SKILLKIT_REGISTRY` environment variable
-2. Default: `~/ai/skillkit` (the cloned repo itself)
+2. Default: `~/ai/_personal/skillkit` (the cloned repo itself)
 
 ---
 
@@ -49,7 +49,7 @@ This puts `skillkit` on your PATH via uv's tool shim directory. If `uv` prints a
 
 ```toml
 [sources]
-mine   = "~/ai/skillkit/skills"
+mine   = "~/ai/_personal/skillkit/skills"
 gstack = "~/.claude/skills/gstack"
 ```
 
