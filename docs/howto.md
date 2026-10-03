@@ -55,7 +55,7 @@ Goal: bundle a set of skills under one name and install them together.
    skillkit pack create code-repo
    ```
 
-   Or hand-write `~/ai/_personal/skillkit/packs/code-repo.toml` (see the
+   Or hand-write `~/personal/skillkit/packs/code-repo.toml` (see the
    [reference](reference.md#packsnametoml-registry)).
 
 2. Install it in any project:
@@ -171,8 +171,8 @@ Goal: add a skill you wrote to the registry so you can install it anywhere.
 1. Create a directory under the registry's `mine` source with a `SKILL.md`:
 
    ```bash
-   mkdir -p ~/ai/_personal/skillkit/skills/spine-helper
-   $EDITOR ~/ai/_personal/skillkit/skills/spine-helper/SKILL.md
+   mkdir -p ~/personal/skillkit/skills/spine-helper
+   $EDITOR ~/personal/skillkit/skills/spine-helper/SKILL.md
    ```
 
 2. Give it frontmatter:
@@ -201,7 +201,7 @@ ls .claude/skills/spine-helper/
 ### Troubleshooting
 
 - **Doesn't appear in `list`** — confirm the `mine` source path in `sources.toml`
-  points at `~/ai/_personal/skillkit/skills` and the dir contains a `SKILL.md`.
+  points at `~/personal/skillkit/skills` and the dir contains a `SKILL.md`.
 - **Public repo** — the registry is public. Keep secrets, internal URLs, and
   client names out of authored skills. The gitleaks pre-commit hook will catch
   obvious secrets if you run `pre-commit install`.

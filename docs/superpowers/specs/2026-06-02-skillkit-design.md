@@ -48,12 +48,12 @@ install chosen subsets — individually or as named packs — into a project's
 | Pack semantics | **Live reference** — manifest stores `pack:<name>`; `sync`/`update` re-resolve |
 | Versioning | **None** (YAGNI) |
 | Implementation | **Python + Textual TUI**, managed with `uv` (pyproject) |
-| Registry home | **`~/ai/_personal/skillkit/`**, a new **public** git repo (CLI + registry content together) |
+| Registry home | **`~/personal/skillkit/`**, a new **public** git repo (CLI + registry content together) |
 | gstack | **De-scatter in v1** — register gstack's canonical dir as a source, remove the global scatter |
 
 ## Architecture
 
-### Repo layout (`~/ai/_personal/skillkit/`, public)
+### Repo layout (`~/personal/skillkit/`, public)
 ```
 skillkit/
   pyproject.toml            # uv-managed; entry point `skillkit`
@@ -95,7 +95,7 @@ skillkit/
      registry edits). Remove `.claude/skills/<name>` dirs that skillkit manages but are
      no longer in the manifest (tracked via a `.skillkit-managed` marker file per dir so
      we never delete hand-placed skills).
-   - `update`: `git -C ~/ai/_personal/skillkit pull` (if a remote exists) then `sync`.
+   - `update`: `git -C ~/personal/skillkit pull` (if a remote exists) then `sync`.
    - `vendor`: same copy, but write/commit into `.claude/skills/` as tracked files and
      add a local `.gitignore` negation so the repo is self-contained.
 
@@ -115,16 +115,16 @@ skillkit/
 ### Data formats
 
 ```toml
-# ~/ai/_personal/skillkit/sources.toml
+# ~/personal/skillkit/sources.toml
 [sources]
-mine   = "~/ai/_personal/skillkit/skills"
+mine   = "~/personal/skillkit/skills"
 gstack = "~/.claude/skills/gstack"
 agents = "~/.agents/skills"
 # plugins auto-detected from ~/.claude/plugins
 ```
 
 ```toml
-# ~/ai/_personal/skillkit/packs/code-repo.toml
+# ~/personal/skillkit/packs/code-repo.toml
 [pack]
 name = "code-repo"
 description = "Everyday coding repo set"

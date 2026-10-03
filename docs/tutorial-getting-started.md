@@ -11,7 +11,7 @@ You'll build this in about ten minutes.
 
 - macOS with Claude Code installed (skills load from `.claude/skills/`).
 - [`uv`](https://docs.astral.sh/uv/) on your PATH.
-- The skillkit repo cloned at `~/ai/_personal/skillkit` (the default registry location).
+- The skillkit repo cloned at `~/personal/skillkit` (the default registry location).
 - A gstack install that scattered skills into `~/.claude/skills/` (optional — skip
   Step 2 if you don't have one).
 
@@ -20,7 +20,7 @@ You'll build this in about ten minutes.
 From the repo:
 
 ```bash
-cd ~/ai/_personal/skillkit
+cd ~/personal/skillkit
 uv tool install --editable .
 ```
 
@@ -84,7 +84,7 @@ skillkit pack create code-repo
 
 A multiselect opens. Space to select the three or four skills you actually use in
 coding repos (say `gstack:browse`, `gstack:qa`, `gstack:ship`), Enter to save.
-This writes `~/ai/_personal/skillkit/packs/code-repo.toml`.
+This writes `~/personal/skillkit/packs/code-repo.toml`.
 
 Verify it:
 
